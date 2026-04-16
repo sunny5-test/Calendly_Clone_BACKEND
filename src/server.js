@@ -18,14 +18,14 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://calendly-clone-front-end.vercel.app';
+
 // ─── Middleware ───────────────────────────────────────────
 app.use(cors({
-    origin: [
-        'http://localhost:3000', 
-        'https://calendly-clone-front-end.vercel.app' 
-    ], 
-    credentials: true, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  origin: FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(passport.initialize());
