@@ -343,7 +343,7 @@ const emailService = {
       ? 'Meetings will be distributed between you and other hosts in rotation.'
       : 'You will join all meetings together with the other hosts.';
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = 'https://calendly-clone-front-end.vercel.app';
 
     const bodyHTML = `
       <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
