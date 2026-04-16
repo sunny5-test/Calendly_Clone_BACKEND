@@ -20,8 +20,12 @@ const PORT = process.env.PORT || 5000;
 
 // ─── Middleware ───────────────────────────────────────────
 app.use(cors({
-  origin: 'https://calendly-clone-front-end.vercel.app/',
-  credentials: true,
+    origin: [
+        'http://localhost:3000', 
+        'https://calendly-clone-front-end.vercel.app' 
+    ], 
+    credentials: true, 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(express.json());
 app.use(passport.initialize());
