@@ -1,6 +1,8 @@
 const passport = require('passport');
 const authService = require('../services/authService');
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://calendly-clone-front-end.vercel.app';
+
 /**
  * Controller for authentication operations.
  * Thin layer that delegates to the auth service and manages HTTP concerns.
@@ -23,13 +25,12 @@ const authController = {
   googleCallback: [
     passport.authenticate('google', {
       session: false,
-      failureRedirect: `${'https://calendly-clone-front-end.vercel.app'}/login?error=auth_failed`,
+      failureRedirect: `${FRONTEND_URL}/login?error=auth_failed`,
     }),
     async (req, res, next) => {
       try {
         const token = authService.generateToken(req.user);
-        const frontendUrl = 'https://calendly-clone-front-end.vercel.app';
-        res.redirect(`${frontendUrl}/dashboard?token=${token}`);
+        res.redirect(`${FRONTEND_URL}/dashboard?token=${token}`);
       } catch (error) {
         next(error);
       }
