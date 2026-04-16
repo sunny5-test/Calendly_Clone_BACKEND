@@ -23,12 +23,12 @@ const authController = {
   googleCallback: [
     passport.authenticate('google', {
       session: false,
-      failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_failed`,
+      failureRedirect: `${'https://calendly-clone-front-end.vercel.app'}/login?error=auth_failed`,
     }),
     async (req, res, next) => {
       try {
         const token = authService.generateToken(req.user);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = 'https://calendly-clone-front-end.vercel.app';
         res.redirect(`${frontendUrl}/dashboard?token=${token}`);
       } catch (error) {
         next(error);
