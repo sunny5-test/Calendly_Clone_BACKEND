@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Registered users (host or invitee)
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  googleId String? @unique @map("google_id")
+  avatar   String?
+
+  eventTypes       EventType[]
+  availability     Availability[]
+  inviteeBookings  Booking[]          @relation("InviteeBookings")
+  coHostEvents     EventTypeCoHost[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+/// Configurable meeting types with different event kinds
+model EventType {
+  id       Int    @id @default(autoincrement())
+  name     String
+  duration Int    // duration in minutes
+  slug     String @unique
+  color    String @default("#006BFF")
+
+  // Event kind: one-on-one | group | round-robin | collective
+  kind        String @default("one-on-one")
+  // Max invitees per slot (only used for group events)
+  maxInvitees Int    @default(1) @map("max_invitees")
+
+  // Location: google-meet | teams | zoom | custom | none
+  locationType  String @default("none") @map("location_type")
+  locationValue String @default("") @map("location_value")
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bookings Booking[]
+  coHosts  EventTypeCoHost[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("event_types")
+}
+
+/// Co-hosts for Round Robin and Collective events
+model EventTypeCoHost {
+  id          Int       @id @default(autoincrement())
+  eventTypeId Int       @map("event_type_id")
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  userId      Int       @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([eventTypeId, userId])
+  @@map("event_type_co_hosts")
+}
+
+/// Weekly recurring availability windows (one entry per day-of-week per user)
+model Availability {
+  id        Int    @id @default(autoincrement())
+  dayOfWeek Int    @map("day_of_week") // 0 = Sunday, 6 = Saturday
+  startTime String @map("start_time") // "09:00" HH:mm
+  endTime   String @map("end_time")   // "17:00" HH:mm
+  timezone  String @default("Asia/Kolkata")
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, dayOfWeek])
+  @@map("availability")
+}
+
+/// Individual booking records — invitees must be logged in
+model Booking {
+  id          Int       @id @default(autoincrement())
+  eventTypeId Int       @map("event_type_id")
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  inviteeId Int?  @map("invitee_id")
+  invitee   User? @relation("InviteeBookings", fields: [inviteeId], references: [id], onDelete: SetNull)
+
+  // For round-robin: which host was assigned to this booking
+  assignedHostId Int? @map("assigned_host_id")
+
+  name      String // invitee name
+  email     String // invitee email
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+  status    String   @default("scheduled") // scheduled | cancelled
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([eventTypeId, startTime, endTime])
+  @@index([inviteeId])
+  @@index([status])
+  @@map("bookings")
+}
